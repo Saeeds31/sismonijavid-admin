@@ -90,7 +90,6 @@ const form = ref({
   type: '',
   button_text: '',
 })
-
 function imageLoaded(files) {
   if (files.length) {
     form.image = files[0].file
@@ -119,7 +118,7 @@ const fetchData = async () => {
     toast.error('خطا در دریافت اطلاعات اسلایدر')
   }
 }
-
+let errors = ref({})
 const updateForm = async () => {
   try {
     loading.value = true
@@ -135,6 +134,9 @@ const updateForm = async () => {
     toast.success('اسلایدر با موفقیت بروزرسانی شد')
   } catch (e) {
     toast.error('خطا در بروزرسانی اسلایدر')
+
+    Object.assign(errors.value, e.response?.data?.errors)
+
   } finally {
     loading.value = false
   }

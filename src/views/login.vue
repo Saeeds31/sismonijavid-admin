@@ -6,12 +6,12 @@
     <b-card class="login-card p-4 shadow-lg" :class="{ 'card-loaded': isLoaded }">
       <!-- Decorative icon -->
       <div class="login-icon mb-3">
-        <div class="icon-circle">
+        <div class="icon-circle newbg">
           <i class="bi-shield-lock"></i>
         </div>
       </div>
 
-      <h2 class="text-center mb-2 text-gradient">خوش آمدید</h2>
+      <h2 class="text-center mb-2 page-title">خوش آمدید</h2>
       <p class="text-center text-muted mb-4 subtitle">لطفاً اطلاعات خود را وارد کنید</p>
 
       <b-form @submit.prevent="handleLogin" id="loginForm">
@@ -20,9 +20,9 @@
           <label class="form-label fw-semibold mb-2">شماره موبایل</label>
           <div class="input-group custom-input-group">
             <b-form-input id="username" name="mobile" v-model="username" placeholder="09123456789" required
-              class="custom-input" :class="{ 'input-filled': username }"></b-form-input>
+              class="custom-input" @keypress.enter="sendOtp()" :class="{ 'input-filled': username }"></b-form-input>
             <span @click="sendOtp()" :class="{ 'disableButton': counter != 0, 'otp-btn-active': counter == 0 }"
-              class="input-group-text otp-btn">
+              class="input-group-text otp-btn newbg">
               <i v-if="counter <= 0" class="bi-send-fill"></i>
               <span v-else class="counter-text">{{ counter }}</span>
             </span>
