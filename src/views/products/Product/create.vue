@@ -92,8 +92,15 @@
           </div>
 
           <div class="border-box">
-
+            <b-col cols="12">
+              <b-form-group>
+                <b-form-checkbox id="status" v-model="form.is_rechargeable" :true-value="1" :false-value="0">
+                  شارژ مجدد یا جدیدترین
+                </b-form-checkbox>
+              </b-form-group>
+            </b-col>
             <div class="col-md-12 mb-3">
+
               <label class="form-label">تصویر اصلی</label>
               <VueFileAgent @select="imageLoaded" @beforedelete="imageRemoved" :maxFiles="1" accept=".jpg,.png"
                 theme="grid" deletable sortable />
@@ -340,6 +347,7 @@ const form = ref({
   images: [],
   description: '',
   categories: [],
+  is_rechargeable: false,
   main_image: '',
   meta_title: '',
   meta_description: '',
@@ -502,7 +510,11 @@ async function saveStep1() {
         form.value.images.forEach((imgfile) => {
           formData.append('images[]', imgfile)
         })
-      } else if (key !== 'categories') {
+      }
+      else if (key == 'is_rechargeable') {
+        formData.append('is_rechargeable', Number(form.value.is_rechargeable))
+      }
+      else if (key !== 'categories') {
         formData.append(key, form.value[key])
       }
     })
@@ -661,6 +673,7 @@ async function saveStep3() {
 .g-3 {
   gap: 16px;
 }
+
 .steper {
   background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
   color: white !important;

@@ -106,7 +106,7 @@
                 <b-col cols="12">
                   <b-form-group>
                     <b-form-checkbox id="status" v-model="form.is_rechargeable" :true-value="1" :false-value="0">
-                      نمایش در لیست شارژ مجدد
+                     شارژ مجدد یا جدیدترین
                     </b-form-checkbox>
                   </b-form-group>
                 </b-col>

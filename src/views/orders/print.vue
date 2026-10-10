@@ -9,7 +9,7 @@
                         <img src="@/assets/images/logo.png" width="72" alt="">
                     </div>
                     <div>
-                        <strong>سیسمونی جاوید</strong>
+                        <strong>ماه ستی</strong>
                         <span>مرکز مدیریت سفارشات</span>
                     </div>
                 </div>
@@ -75,7 +75,7 @@
                             <div class="box box-store">
                                 <div class="store-header">
                                     <div class="store-title">
-                                        <strong>فروشگاه سیسمونی جاوید</strong>
+                                        <strong>فروشگاه ماه ستی</strong>
                                     </div>
                                     <div class="store-date">
                                         <span>تاریخ چاپ:</span>
@@ -86,7 +86,7 @@
                                 <div class="store-row">
                                     <div class="store-cell">
                                         <span class="cell-label">عنوان وبسایت:</span>
-                                        <strong class="cell-value">sismonijavid.ir</strong>
+                                        <strong class="cell-value">mahseti.shop</strong>
                                     </div>
                                     <div class="store-cell">
                                         <span class="cell-label">شناسه سفارش:</span>
@@ -239,17 +239,18 @@
                                 <div class="summary-row">
                                     <div class="summary-cell">
                                         <span class="cell-label">مبلغ کل:</span>
-                                        <strong class="cell-value">{{ Number(order.subtotal).toLocaleString('fa-IR') }}
+                                        <strong class="cell-value">{{ Number(getSubTotal(order)).toLocaleString('fa-IR')
+                                            }}
                                             تومان</strong>
                                     </div>
                                     <div class="summary-cell">
                                         <span class="cell-label">مبلغ حمل و نقل:</span>
                                         <strong class="cell-value">{{
-                                            Number(order.shipping_cost).toLocaleString('fa-IR') }} تومان</strong>
+                                            Number(getShippingCost(order)).toLocaleString('fa-IR') }} تومان</strong>
                                     </div>
                                     <div class="summary-cell highlight">
                                         <span class="cell-label">مبلغ نهایی:</span>
-                                        <strong class="cell-value">{{ Number(order.total).toLocaleString('fa-IR') }}
+                                        <strong class="cell-value">{{ Number(getShippingCost(order)+getSubTotal(order)).toLocaleString('fa-IR') }}
                                             تومان</strong>
                                     </div>
                                 </div>
@@ -289,12 +290,12 @@
                                         </div>
                                         <div>
                                             <strong>اطلاعات فرستنده:</strong>
-                                            <span>سیسمونی جاوید</span>
+                                            <span>ماه ستی</span>
                                         </div>
                                     </div>
                                     <div class="label-number">
                                         <small>website</small>
-                                        <strong>www.sismonijavid.ir</strong>
+                                        <strong>www.mahseti.shop</strong>
                                     </div>
                                 </div>
 
@@ -304,7 +305,7 @@
                                         <i class="bi bi-arrow-down-circle-fill"></i>
                                         <span>ارسال از</span>
                                     </div>
-                                    <div class="receiver-name">فروشگاه سیسمونی جاوید</div>
+                                    <div class="receiver-name">فروشگاه ماه ستی</div>
                                     <div class="receiver-phone">
                                         <i class="bi bi-telephone-fill"></i>
                                         ۰۹۳۳۵۸۱۴۴۷۵
@@ -320,7 +321,7 @@
 
                                 <div class="label-bottom">
                                     <div>
-                                        <small>sismonijavid</small>
+                                        <small>mahseti</small>
                                         <strong>فروشگاه لباس زیر</strong>
                                     </div>
                                     <div class="label-price">
@@ -394,9 +395,9 @@
             <!-- PRINT FOOTER -->
             <div class="print-footer">
                 <div class="footer-line"></div>
-                <strong>سیسمونی جاوید</strong>
+                <strong>ماه ستی</strong>
                 <span>این فاکتور توسط سیستم مدیریت سفارشات صادر شده است.</span>
-                <small>www.sismonijavid.ir</small>
+                <small>www.mahseti.shop</small>
             </div>
 
         </div>
@@ -419,6 +420,24 @@ const orders = ref([]);
 const loading = ref(false);
 const orderIds = ref([]);
 const printType = ref('full');
+function getSubTotal(order) {
+    if (!order) return 0;
+    let childs = order.child_orders ? order.child_orders.filter(o => o.status == "paid") : [];
+    let childTotal = childs.reduce((a, b) => {
+        return a + b.subtotal
+    }, 0)
+    return childTotal+order.subtotal
+}
+
+function getShippingCost(order) {
+    if (!order) return 0;
+    let childs = order.child_orders ? order.child_orders.filter(o => o.status == "paid") : [];
+    let childTotal = childs.reduce((a, b) => {
+        return a + b.shipping_cost
+    }, 0)
+    return childTotal+order.shipping_cost
+}
+
 
 // ✅ تاریخ امروز به شمسی
 const getCurrentDate = () => {
@@ -447,8 +466,8 @@ const getTotalQuantity = (order) => {
 
 // ✅ اطلاعات ثابت فروشگاه
 const STORE_INFO = {
-    title: 'فروشگاه سیسمونی جاوید',
-    website: 'sismonijavid.ir',
+    title: 'فروشگاه ماه ستی',
+    website: 'mahseti.shop',
     phone: '09375015769',
     address: 'گلستان - گرگان - خیابان پنج آذر - آذر چهارم - جنب داروخانه'
 };
