@@ -106,14 +106,14 @@
                 <b-col cols="12">
                   <b-form-group>
                     <b-form-checkbox id="status" v-model="form.is_rechargeable" :true-value="1" :false-value="0">
-                     شارژ مجدد یا جدیدترین
+                      شارژ مجدد یا جدیدترین
                     </b-form-checkbox>
                   </b-form-group>
                 </b-col>
                 <div class="col-md-12 mb-3">
                   <label class="form-label">تصویر اصلی</label>
                   <VueFileAgent :raw-model-value="oldMainImage" @select="imageLoaded" @beforedelete="mainImageRemoved"
-                    :maxFiles="1" accept=".jpg,.png" theme="grid" deletable sortable />
+                    :maxFiles="1" accept=".jpg,.png,.webp" theme="grid" deletable sortable />
                   <span v-if="errors.step1.main_image" class="text-danger">{{ errors.step1.main_image[0] }}</span>
                 </div>
                 <div class="col-md-12 mb-3">
@@ -124,6 +124,16 @@
                     <option value="online_only">آنلاین</option>
                   </select>
                   <span v-if="errors.step1.sales_channel" class="text-danger">{{ errors.step1.sales_channel[0] }}</span>
+                </div>
+                <div class="col-md-12 mb-3" v-if="form.sales_channel != 'online_only'">
+                  <label class="form-label">قیمت فروش حضوری
+                    <span v-if="form.in_store_price">{{ Number(form.in_store_price).toLocaleString('fa-IR') }}</span>
+                    (تومان)
+
+                  </label>
+                  <input v-model="form.in_store_price" type="number" class="form-control" />
+                  <span v-if="errors.step1.in_store_price" class="text-danger">{{ errors.step1.in_store_price[0]
+                    }}</span>
                 </div>
                 <!-- وضعیت و تخفیف -->
                 <div class="col-md-12 mb-3">
@@ -232,6 +242,7 @@
                   </th>
                   <th>SKU</th>
                   <th>قیمت</th>
+                  <th>قیمت حضوری</th>
                   <th>موجودی</th>
                   <th>تخفیف</th>
                   <th>زمان تخفیف</th>
@@ -244,6 +255,7 @@
                   </td>
                   <td><input v-model="variant.sku" class="form-control" /></td>
                   <td><input v-model="variant.price" type="number" class="form-control" /></td>
+                  <td><input v-model="variant.in_store_price" type="number" class="form-control" /></td>
                   <td><input v-model="variant.stock" type="number" class="form-control" /></td>
                   <td>
                     <div class="col-md-12 mb-3">
@@ -363,6 +375,8 @@ const form = ref({
   meta_description: '',
   status: '',
   sales_channel: 'both',
+
+  in_store_price:'',
   discount_value: '',
   discount_start_at: '',
   published_at: '',
@@ -452,6 +466,7 @@ function generateCombinations() {
           discount_end_at: '',
           discount_type: '',
           price: '',
+          in_store_price:'',
           stock: '',
           values: values.map((v) => ({ id: v.id, value: v.value })),
         }
@@ -531,6 +546,7 @@ async function loadProduct() {
     meta_description: product.value.meta_description,
     status: product.value.status,
     sales_channel: product.value.sales_channel,
+    in_store_price: product.value.in_store_price,
     discount_value: product.value.discount_value,
     discount_start_at: product.value.discount_start_at,
     published_at: product.value.published_at,
@@ -605,6 +621,7 @@ async function loadProduct() {
 
       variantCombinations.value.push({
         price: v.price,
+        in_store_price: v.in_store_price,
         uid,
         id: v.id,
         sku: v.sku,
@@ -768,6 +785,7 @@ async function saveStep2() {
     formData.append(`variants[${index}][id]`, v.id || '')
     formData.append(`variants[${index}][sku]`, v.sku || '')
     formData.append(`variants[${index}][price]`, v.price || 0)
+    formData.append(`variants[${index}][in_store_price]`, v.in_store_price || 0)
     formData.append(`variants[${index}][stock]`, v.stock ?? 0)
     formData.append(`variants[${index}][discount_value]`, v.discount_value ?? 0)
     formData.append(`variants[${index}][discount_start_at]`, v.discount_start_at ?? '')

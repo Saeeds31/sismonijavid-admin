@@ -137,6 +137,11 @@ const routes = [
     component: () => import("@/views/products/Product/list.vue"),
   },
   {
+    path: "/products/export-import",
+    name: "products-excelManager",
+    component: () => import("@/views/products/Product/excelManager.vue"),
+  },
+  {
     path: "/products/create",
     name: "products-create",
     component: () => import("@/views/products/Product/create.vue"),
@@ -305,7 +310,7 @@ const routes = [
     component: () => import("@/views/orders/problematic.vue"),
   },
   //
-   {
+  {
     path: "/channels",
     name: "channels",
     component: () => import("@/views/channels/ChannelsList.vue"),

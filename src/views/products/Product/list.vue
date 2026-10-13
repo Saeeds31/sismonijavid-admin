@@ -9,10 +9,16 @@
             <i class="bi bi-box-fill"></i>
             <span>مدیریت محصولات</span>
           </h3>
-          <router-link to="/products/create" class="btn btn-success add-btn">
+         <div class="d-flex align-items-center gap-2">
+           <router-link to="/products/create" class="btn btn-success add-btn">
             <i class="bi bi-plus"></i>
             <span>افزودن محصول</span>
           </router-link>
+           <router-link to="/products/export-import" class="btn btn-warning add-btn">
+            <i class="bi bi-file-check"></i>
+            <span>ورودی و خروجی</span>
+          </router-link>
+         </div>
         </div>
       </div>
 
