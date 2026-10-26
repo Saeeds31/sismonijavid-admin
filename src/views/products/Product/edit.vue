@@ -103,6 +103,11 @@
               </div>
 
               <div class="border-box">
+                <div class="col-md-12 mb-3">
+                  <label class="form-label">اسلاگ محصول</label>
+                  <input v-model="form.slug" type="text" class="form-control" />
+                  <span v-if="errors.step1.slug" class="text-danger">{{ errors.step1.slug[0] }}</span>
+                </div>
                 <b-col cols="12">
                   <b-form-group>
                     <b-form-checkbox id="status" v-model="form.is_rechargeable" :true-value="1" :false-value="0">
@@ -133,7 +138,7 @@
                   </label>
                   <input v-model="form.in_store_price" type="number" class="form-control" />
                   <span v-if="errors.step1.in_store_price" class="text-danger">{{ errors.step1.in_store_price[0]
-                    }}</span>
+                  }}</span>
                 </div>
                 <!-- وضعیت و تخفیف -->
                 <div class="col-md-12 mb-3">
@@ -366,6 +371,7 @@ const steps = ref([
 
 const form = ref({
   title: '',
+  slug: '',
   images: [],
   description: '',
   categories: [],
@@ -376,7 +382,7 @@ const form = ref({
   status: '',
   sales_channel: 'both',
 
-  in_store_price:'',
+  in_store_price: '',
   discount_value: '',
   discount_start_at: '',
   published_at: '',
@@ -388,6 +394,26 @@ const form = ref({
   price: '',
   video: '',
 })
+watch(
+  () => form.value.slug,
+  (neValue) => {
+    const sanitized = sanitizeSlug(neValue);
+    if (neValue !== sanitized) {
+      form.value.slug = sanitized;
+    }
+  },
+  { deep: true }
+)
+function sanitizeSlug(value) {
+  if (!value) return '';
+  return value
+    .trim()                                // حذف فاصله اول و آخر
+    .toLowerCase()                         // حروف کوچک
+    .replace(/[\s_]+/g, '-')               // فاصله و _ به -
+    .replace(/[^a-z0-9\u0600-\u06FF-]/g, '') // فقط حروف، عدد، خط تیره و کاراکترهای فارسی
+    .replace(/-+/g, '-')                   // چند خط تیره پشت سر هم => یکی
+    .replace(/^-+|-+$/g, '');              // حذف - از اول و آخر
+}
 
 const errors = ref({ step1: {}, step2: {}, step3: {} })
 
@@ -466,7 +492,7 @@ function generateCombinations() {
           discount_end_at: '',
           discount_type: '',
           price: '',
-          in_store_price:'',
+          in_store_price: '',
           stock: '',
           values: values.map((v) => ({ id: v.id, value: v.value })),
         }
@@ -539,6 +565,7 @@ async function loadProduct() {
 
   Object.assign(form.value, {
     title: product.value.title,
+    slug: product.value.slug,
     is_rechargeable: Number(product.value.is_rechargeable),
     description: product.value.description,
     categories: product.value.categories.map((c) => c.id),

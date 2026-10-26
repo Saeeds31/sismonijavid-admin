@@ -1,5 +1,6 @@
 <template>
   <div class="editor-container">
+    <!-- ورودی HTML -->
     <div class="html-input-section">
       <textarea
         v-model="htmlInput"
@@ -9,34 +10,27 @@
       ></textarea>
       <button @click="insertHtml" type="button" class="insert-btn">درج HTML</button>
     </div>
-    
-    <QuillEditor
-      ref="quillEditorRef"
-      v-model:content="editorContent"
-      content-type="html"
-      theme="snow"
-      :options="editorOptions"
-      @ready="onEditorReady"
-      @update:content="onEditorChange"
-      dir="rtl"
-      class="quill-editor"
-    />
+
+    <!-- ظرف ادیتور Quill -->
+    <div ref="editorContainer" class="quill-editor" dir="rtl"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import ImageUploader from 'quill-image-uploader'
-import BlotFormatter from 'quill-blot-formatter'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import Quill from 'quill'
+import 'quill/dist/quill.snow.css'
 
-// ثبت پلاگین‌ها
-Quill.register('modules/imageUploader', ImageUploader)
-Quill.register('modules/blotFormatter', BlotFormatter)
+// quill-table-better (نسخه سازگار با Quill 2)
+import QuillTableBetter from 'quill-table-better'
+import 'quill-table-better/dist/quill-table-better.css'
 
-// props و emit برای v-model
+// ثبت پلاگین جدول
+Quill.register({
+  'modules/table-better': QuillTableBetter
+}, true)
+
+// props و emit
 const props = defineProps({
   modelValue: {
     type: String,
@@ -45,138 +39,132 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-// رفرنس به ادیتور
-const quillEditorRef = ref(null)
+// رفرنس‌ها
+const editorContainer = ref(null)
 let quillInstance = null
-
-// مقدار داخلی برای QuillEditor
-const editorContent = ref(props.modelValue)
-
-// ورودی HTML
 const htmlInput = ref('')
 
-// سینک کردن تغییرات با v-model
-watch(editorContent, (newValue) => {
-  emit('update:modelValue', newValue)
+// ========== تنظیمات ادیتور ==========
+const toolbarOptions = [
+  [{ header: [1, 2, 3, 4, 5, 6, false] }],
+  [{ font: [] }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ align: ['right', 'center', 'left', 'justify'] }],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  [{ indent: '-1' }, { indent: '+1' }],
+  [{ size: ['small', false, 'large', 'huge'] }],
+  [{ color: [] }, { background: [] }],
+  ['link', 'image', 'video', 'blockquote', 'code-block'],
+  [{ direction: 'rtl' }],
+  ['table-better'],   // دکمه درج جدول
+  ['clean']
+]
+
+const editorOptions = {
+  theme: 'snow',
+  placeholder: 'متن خود را اینجا بنویسید...',
+  modules: {
+    table: false,           // غیرفعال کردن جدول پیش‌فرض Quill
+    toolbar: toolbarOptions,
+    'table-better': {
+      language: 'en_US',    // زبان پیش‌فرض؛ اگر فارسی پشتیبانی نشد
+      menus: ['column', 'row', 'merge', 'table', 'cell', 'wrap', 'delete'],
+      toolbarTable: true
+    },
+    keyboard: {
+      bindings: QuillTableBetter.keyboardBindings
+    }
+  }
+}
+
+// ========== راه‌اندازی ادیتور ==========
+onMounted(() => {
+  if (!editorContainer.value) return
+
+  // ساخت نمونه Quill
+  quillInstance = new Quill(editorContainer.value, editorOptions)
+
+  // تنظیم RTL
+  quillInstance.container.style.direction = 'rtl'
+  quillInstance.container.style.textAlign = 'right'
+
+  // اگر مقدار اولیه از والد آمده، بارگذاری کن
+  if (props.modelValue) {
+    const delta = quillInstance.clipboard.convert({ html: props.modelValue })
+    const [range] = quillInstance.selection.getRange()
+    quillInstance.updateContents(delta, Quill.sources.USER)
+    quillInstance.setSelection(
+      delta.length() - (range?.length || 0),
+      Quill.sources.SILENT
+    )
+    quillInstance.scrollSelectionIntoView()
+  }
+
+  // گوش دادن به تغییرات محتوا
+  quillInstance.on('text-change', () => {
+    const html = quillInstance.root.innerHTML
+    emit('update:modelValue', html)
+  })
 })
 
-// سینک کردن modelValue از والد به ادیتور
-watch(() => props.modelValue, (newValue) => {
-  if (newValue !== editorContent.value) {
-    editorContent.value = newValue
+onBeforeUnmount(() => {
+  if (quillInstance) {
+    quillInstance = null
   }
 })
 
-// تنظیمات ادیتور
-const editorOptions = {
-  modules: {
-    toolbar: [
-      [{ header: [1, 2, 3, 4, 5, 6, false] }],
-      [{ font: [] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ align: ['right', 'center', 'left', 'justify'] }],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ indent: '-1' }, { indent: '+1' }],
-      [{ size: ['small', false, 'large', 'huge'] }],
-      [{ color: [] }, { background: [] }],
-      ['link', 'image', 'video', 'blockquote', 'code-block'],
-      [{ direction: 'rtl' }],
-      ['clean']
-    ],
-    imageUploader: {
-      upload: (file) => {
-        return new Promise((resolve, reject) => {
-          const formData = new FormData()
-          formData.append('file', file)
-          fetch('/upload', {
-            method: 'POST',
-            body: formData
-          })
-            .then((response) => response.json())
-            .then((result) => resolve(result.url))
-            .catch(() => reject('آپلود تصویر ناموفق بود'))
-        })
-      }
-    },
-    blotFormatter: {},
-    clipboard: {
-      matchVisual: false
-    }
-  },
-  placeholder: 'متن خود را اینجا بنویسید...'
-}
-
-// ایونت‌ها
-const onEditorReady = (quill) => {
-  quillInstance = quill
-  console.log('ادیتور آماده شد:', quill)
-  quill.container.style.direction = 'rtl'
-  quill.container.style.textAlign = 'right'
-}
-
-const onEditorChange = () => {
-  console.log('محتوا تغییر کرد:', editorContent.value)
-}
-
-// تابع درج HTML
+// ========== درج HTML ==========
 const insertHtml = () => {
   if (!quillInstance || !htmlInput.value.trim()) return
-  
+
   try {
-    // روش 1: استفاده از clipboard
     const clipboard = quillInstance.getModule('clipboard')
     const range = quillInstance.getSelection(true)
-    
+
     if (range) {
       clipboard.dangerouslyPasteHTML(range.index, htmlInput.value)
       quillInstance.setSelection(range.index + htmlInput.value.length, 0)
     } else {
-      // اگر کرسر جایی نیست، به انتها اضافه کن
       const length = quillInstance.getLength()
       clipboard.dangerouslyPasteHTML(length - 1, htmlInput.value)
     }
-    
-    // پاک کردن textarea بعد از درج
+
     htmlInput.value = ''
-    
-    // به‌روزرسانی editorContent
-    editorContent.value = quillInstance.root.innerHTML
   } catch (error) {
     console.error('خطا در درج HTML:', error)
     alert('خطا در درج HTML. لطفاً کد را بررسی کنید.')
   }
 }
 
-// متد عمومی برای درج HTML از خارج کامپوننت
+// ========== متدهای عمومی برای والد ==========
 const insertHtmlProgrammatically = (html) => {
   if (!quillInstance) return
-  
   try {
     const clipboard = quillInstance.getModule('clipboard')
     const range = quillInstance.getSelection(true)
-    
     if (range) {
       clipboard.dangerouslyPasteHTML(range.index, html)
     } else {
       const length = quillInstance.getLength()
       clipboard.dangerouslyPasteHTML(length - 1, html)
     }
-    
-    editorContent.value = quillInstance.root.innerHTML
   } catch (error) {
     console.error('خطا در درج HTML:', error)
   }
 }
 
-// متد برای جایگزینی کل محتوا
 const setHtmlContent = (html) => {
   if (!quillInstance) return
-  
-  quillInstance.root.innerHTML = html
-  editorContent.value = html
+  const delta = quillInstance.clipboard.convert({ html })
+  const [range] = quillInstance.selection.getRange()
+  quillInstance.updateContents(delta, Quill.sources.USER)
+  quillInstance.setSelection(
+    delta.length() - (range?.length || 0),
+    Quill.sources.SILENT
+  )
+  quillInstance.scrollSelectionIntoView()
 }
 
-// expose کردن متدها برای استفاده از والد
 defineExpose({
   insertHtml: insertHtmlProgrammatically,
   setHtmlContent
@@ -226,23 +214,33 @@ defineExpose({
   background-color: #45a049;
 }
 
-.insert-btn:active {
-  background-color: #3d8b40;
-}
-
 .quill-editor {
   direction: rtl;
   text-align: right;
   font-family: 'Vazir', 'Arial', sans-serif;
-}
-
-.quill-editor :deep(.ql-editor) {
   min-height: 300px;
-  font-size: 16px;
-  line-height: 1.6;
 }
 
 .quill-editor :deep(.ql-toolbar) {
   direction: ltr;
+}
+
+/* استایل جدول داخل ادیتور */
+.quill-editor :deep(.ql-editor table) {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.quill-editor :deep(.ql-editor table td),
+.quill-editor :deep(.ql-editor table th) {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  min-width: 40px;
+}
+
+.quill-editor :deep(.ql-editor table th) {
+  background-color: #f0f0f0;
+  font-weight: bold;
 }
 </style>
