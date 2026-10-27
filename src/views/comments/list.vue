@@ -4,7 +4,8 @@
     <!-- فیلتر و آمار -->
     <div class="card mb-2 header-card">
       <div class="card-header">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-3 mb-3">
+        <div
+          class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-3 mb-3">
           <h3 class="mb-0 page-title">
             <i class="bi bi-chat-dots"></i>
             <span>مدیریت کامنت‌ها</span>
@@ -36,12 +37,8 @@
         <form @submit.prevent="getComments()">
           <div class="row g-2">
             <div class="col-12 col-sm-6 col-md-3">
-              <input
-                v-model="filters.search"
-                type="text"
-                class="form-control search-input"
-                placeholder="جستجو در محتوا..."
-              />
+              <input v-model="filters.search" type="text" class="form-control search-input"
+                placeholder="جستجو در محتوا..." />
             </div>
             <div class="col-6 col-sm-3 col-md-2">
               <select v-model="filters.status" class="form-select">
@@ -159,6 +156,12 @@
                         <button class="btn btn-danger" @click="deleteComment(comment.id)" title="حذف">
                           <i class="bi bi-trash3-fill"></i>
                         </button>
+
+                        <button v-if="comment.replies && comment.replies.length" class="btn btn-secondary"
+                          @click="openRepliesModal(comment)" title="مشاهده پاسخ‌ها">
+                          <i class="bi bi-chat-left-text"></i>
+                          <span class="d-none d-lg-inline ms-1">{{ comment.replies.length }}</span>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -168,11 +171,7 @@
 
             <!-- ===== کارت موبایل ===== -->
             <div class="d-md-none comment-cards">
-              <div
-                v-for="comment in comments.data"
-                :key="comment.id"
-                class="comment-card"
-              >
+              <div v-for="comment in comments.data" :key="comment.id" class="comment-card">
                 <div class="comment-card-header">
                   <div class="comment-icon" :class="`icon-status-${comment.status}`">
                     <i class="bi bi-chat-quote-fill"></i>
@@ -188,10 +187,7 @@
                       <span class="comment-time">{{ formatTime(comment.created_at) }}</span>
                     </div>
                   </div>
-                  <span
-                    class="status-badge-sm"
-                    :class="getStatusBadgeClass(comment.status)"
-                  >
+                  <span class="status-badge-sm" :class="getStatusBadgeClass(comment.status)">
                     {{ getStatusLabel(comment.status) }}
                   </span>
                 </div>
@@ -231,7 +227,8 @@
                     <i class="bi bi-x-lg"></i>
                     <span>رد</span>
                   </button>
-                  <button v-if="comment.status !== 0" class="btn btn-sm btn-warning" @click="changeStatus(comment.id, 0)">
+                  <button v-if="comment.status !== 0" class="btn btn-sm btn-warning"
+                    @click="changeStatus(comment.id, 0)">
                     <i class="bi bi-arrow-counterclockwise"></i>
                     <span>در انتظار</span>
                   </button>
@@ -242,6 +239,12 @@
                   <button class="btn btn-sm btn-danger" @click="deleteComment(comment.id)">
                     <i class="bi bi-trash3-fill"></i>
                     <span>حذف</span>
+                  </button>
+
+                  <button v-if="comment.replies && comment.replies.length" class="btn btn-sm btn-secondary"
+                    @click="openRepliesModal(comment)">
+                    <i class="bi bi-chat-left-text"></i>
+                    <span>پاسخ‌ها ({{ comment.replies.length }})</span>
                   </button>
                 </div>
               </div>
@@ -281,12 +284,8 @@
                 <i class="bi bi-pencil-square"></i>
                 پاسخ شما
               </label>
-              <textarea
-                v-model="replyContent"
-                class="form-control"
-                rows="4"
-                placeholder="متن پاسخ خود را وارد کنید..."
-              ></textarea>
+              <textarea v-model="replyContent" class="form-control" rows="4"
+                placeholder="متن پاسخ خود را وارد کنید..."></textarea>
             </div>
           </div>
           <div class="modal-footer">
@@ -366,6 +365,71 @@
         </div>
       </div>
     </div>
+    <!-- ===== مودال مشاهده پاسخ‌ها ===== -->
+    <div class="modal fade" id="repliesModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-chat-left-text-fill"></i>
+              پاسخ‌های کامنت #{{ repliesTarget?.id }}
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <!-- کامنت اصلی -->
+            <div class="mb-3">
+              <div class="replies-original-label">
+                <i class="bi bi-chat-quote"></i>
+                کامنت اصلی
+              </div>
+              <div class="reply-target-box">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                  <strong class="small">
+                    <i class="bi bi-person-circle"></i>
+                    {{ repliesTarget?.user?.full_name || 'ناشناس' }}
+                  </strong>
+                  <small class="text-muted">{{ formatDate(repliesTarget?.created_at) }}</small>
+                </div>
+                {{ repliesTarget?.content }}
+              </div>
+            </div>
+
+            <!-- لیست پاسخ‌ها -->
+            <div class="replies-list">
+              <div v-for="(reply, idx) in repliesTarget?.replies" :key="reply.id" class="reply-thread-item">
+                <div class="reply-thread-header">
+                  <span class="reply-index">{{ idx + 1 }}</span>
+                  <strong>
+                    <i class="bi bi-person-circle"></i>
+                    {{ reply.user?.full_name || 'ناشناس' }}
+                  </strong>
+                  <span class="badge bg-info-subtle text-info-emphasis ms-auto">
+                    <i class="bi bi-shield-check"></i>
+                    پاسخ ادمین
+                  </span>
+                </div>
+                <div class="reply-thread-content">{{ reply.content }}</div>
+                <div class="reply-thread-footer">
+                  <i class="bi bi-clock"></i>
+                  {{ formatDate(reply.created_at) }} - {{ formatTime(reply.created_at) }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary w-100 w-sm-auto" data-bs-dismiss="modal">
+              <i class="bi bi-x"></i>
+              <span>بستن</span>
+            </button>
+            <button type="button" class="btn btn-info w-100 w-sm-auto" @click="replyToFromModal">
+              <i class="bi bi-reply-fill"></i>
+              <span>پاسخ جدید</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -407,7 +471,26 @@ const replyModal = ref(null);
 
 const viewComment = ref(null);
 const viewModal = ref(null);
+const repliesTarget = ref(null);
+const repliesModal = ref(null);
 
+function openRepliesModal(comment) {
+  repliesTarget.value = comment;
+  if (!repliesModal.value) {
+    const el = document.getElementById('repliesModal');
+    repliesModal.value = new Modal(el);
+  }
+  repliesModal.value.show();
+}
+
+function replyToFromModal() {
+  const target = repliesTarget.value;
+  repliesModal.value?.hide();
+  // کمی تاخیر تا مودال قبلی بسته شود
+  setTimeout(() => {
+    if (target) showReplyModal(target);
+  }, 300);
+}
 async function getComments(url) {
   loading.value = true;
   try {
@@ -562,6 +645,92 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ===== مودال پاسخ‌ها ===== */
+.replies-original-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6c757d;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.replies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reply-thread-item {
+  background: #f8fafc;
+  border-right: 4px solid #6366f1;
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: all 0.2s ease;
+}
+
+.reply-thread-item:hover {
+  background: #f1f5f9;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
+}
+
+.reply-thread-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #2d3436;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.reply-index {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reply-thread-content {
+  font-size: 0.88rem;
+  color: #334155;
+  line-height: 1.7;
+  word-break: break-word;
+  padding-right: 30px;
+}
+
+.reply-thread-footer {
+  margin-top: 8px;
+  padding-right: 30px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* موبایل */
+@media (max-width: 767.98px) {
+
+  .reply-thread-content,
+  .reply-thread-footer {
+    padding-right: 0;
+  }
+
+  .reply-thread-item {
+    padding: 10px 12px;
+    border-right-width: 3px;
+  }
+}
+
 /* ===== هدر ===== */
 .header-card .card-header {
   padding: 16px 20px 8px;
