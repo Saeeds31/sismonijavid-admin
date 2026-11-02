@@ -193,6 +193,12 @@ const menuItems = ref([
         link: "/products/specification",
         icon: "bi-table"
       },
+      {
+        name: "آستانه کسری موجودی",
+        permissions: ['product_view'],
+        link: "/products/low-stock",
+        icon: "bi-list"
+      },
     ],
   },
   {

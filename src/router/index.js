@@ -142,6 +142,12 @@ const routes = [
     component: () => import("@/views/products/Product/excelManager.vue"),
   },
   {
+    path: "/products/low-stock",
+    name: "products-LowStockPage",
+    component: () => import("@/views/products/Product/LowStockPage.vue"),
+  },
+  
+  {
     path: "/products/create",
     name: "products-create",
     component: () => import("@/views/products/Product/create.vue"),

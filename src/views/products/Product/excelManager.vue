@@ -1,11 +1,11 @@
 <template>
-  <div class="variants-excel-page container mt-3 mt-md-4 px-2 px-md-3"
-       v-if="checkPermission(['product_view'])">
+  <div class="variants-excel-page container mt-3 mt-md-4 px-2 px-md-3" v-if="checkPermission(['product_view'])">
 
     <!-- ===== هدر ===== -->
     <div class="card mb-2 header-card">
       <div class="card-header">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2">
+        <div
+          class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2">
           <h3 class="mb-0 page-title">
             <i class="bi bi-file-earmark-excel-fill"></i>
             <span>مدیریت گروهی تنوع‌ها با Excel</span>
@@ -57,20 +57,10 @@
                 <i class="bi bi-funnel"></i>
                 فیلتر دسته‌بندی
               </label>
-              <multiselect
-                v-model="selectedCategories"
-                :options="categoryOptions"
-                :multiple="true"
-                :close-on-select="false"
-                :clear-on-select="false"
-                :preserve-search="true"
-                track-by="id"
-                label="title"
-                placeholder="همه دسته‌بندی‌ها"
-                :custom-label="categoryLabel"
-                :loading="categoriesLoading"
-                class="custom-multiselect"
-              >
+              <multiselect v-model="selectedCategories" :options="categoryOptions" :multiple="true"
+                :close-on-select="false" :clear-on-select="false" :preserve-search="true" track-by="id" label="title"
+                placeholder="همه دسته‌بندی‌ها" :custom-label="categoryLabel" :loading="categoriesLoading"
+                class="custom-multiselect">
                 <template #noResult>دسته‌بندی یافت نشد</template>
               </multiselect>
             </div>
@@ -84,11 +74,7 @@
               </span>
             </div>
 
-            <button
-              class="btn btn-success btn-lg w-100 mt-auto export-btn"
-              :disabled="exporting"
-              @click="exportExcel"
-            >
+            <button class="btn btn-success btn-lg w-100 mt-auto export-btn" :disabled="exporting" @click="exportExcel">
               <template v-if="exporting">
                 <span class="spinner-border spinner-border-sm me-2"></span>
                 <span>در حال آماده‌سازی...</span>
@@ -119,21 +105,10 @@
             </p>
 
             <!-- Dropzone -->
-            <div
-              class="dropzone mb-3"
-              :class="{ 'dragging': isDragging, 'has-file': selectedFile }"
-              @dragover.prevent="isDragging = true"
-              @dragleave.prevent="isDragging = false"
-              @drop.prevent="onDrop"
-              @click="$refs.fileInput.click()"
-            >
-              <input
-                ref="fileInput"
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                class="d-none"
-                @change="onFileChange"
-              />
+            <div class="dropzone mb-3" :class="{ 'dragging': isDragging, 'has-file': selectedFile }"
+              @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false" @drop.prevent="onDrop"
+              @click="$refs.fileInput.click()">
+              <input ref="fileInput" type="file" accept=".xlsx,.xls,.csv" class="d-none" @change="onFileChange" />
 
               <template v-if="!selectedFile">
                 <i class="bi bi-cloud-arrow-up dropzone-icon"></i>
@@ -151,11 +126,7 @@
                   <div class="file-name">{{ selectedFile.name }}</div>
                   <div class="file-size">{{ formatFileSize(selectedFile.size) }}</div>
                 </div>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-danger remove-file-btn"
-                  @click.stop="clearFile"
-                >
+                <button type="button" class="btn btn-sm btn-outline-danger remove-file-btn" @click.stop="clearFile">
                   <i class="bi bi-x-lg"></i>
                 </button>
               </template>
@@ -166,19 +137,12 @@
               <div class="errors-header">
                 <i class="bi bi-exclamation-triangle-fill"></i>
                 <strong>{{ importErrors.length }} خطا یافت شد</strong>
-                <button
-                  class="btn btn-sm btn-link ms-auto p-0 text-danger"
-                  @click="importErrors = []"
-                >
+                <button class="btn btn-sm btn-link ms-auto p-0 text-danger" @click="importErrors = []">
                   <i class="bi bi-x-circle"></i>
                 </button>
               </div>
               <div class="errors-list">
-                <div
-                  v-for="(err, idx) in importErrors"
-                  :key="idx"
-                  class="error-item"
-                >
+                <div v-for="(err, idx) in importErrors" :key="idx" class="error-item">
                   <span class="error-row">ردیف {{ err.row }}</span>
                   <span class="error-col">{{ err.column }}</span>
                   <span class="error-msg">{{ err.message }}</span>
@@ -186,11 +150,8 @@
               </div>
             </div>
 
-            <button
-              class="btn btn-primary btn-lg w-100 mt-auto import-btn"
-              :disabled="!selectedFile || importing"
-              @click="importExcel"
-            >
+            <button class="btn btn-primary btn-lg w-100 mt-auto import-btn" :disabled="!selectedFile || importing"
+              @click="importExcel">
               <template v-if="importing">
                 <span class="spinner-border spinner-border-sm me-2"></span>
                 <span>در حال آپلود...</span>
@@ -236,7 +197,127 @@
         </ul>
       </div>
     </div>
+    <!-- ===== کارت لاگ آپلودها ===== -->
+    <div class="card mt-3 logs-card">
+      <div class="card-header logs-header">
+        <div
+          class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2">
+          <h5 class="mb-0 logs-title">
+            <i class="bi bi-clock-history"></i>
+            <span>تاریخچه آپلود فایل اکسل</span>
+            <span v-if="logs.total" class="logs-count">{{ logs.total }}</span>
+          </h5>
+          <button class="btn btn-sm btn-outline-secondary refresh-btn" :disabled="logsLoading"
+            @click="loadLogs(logs.current_page || 1)">
+            <i class="bi bi-arrow-clockwise" :class="{ 'spin': logsLoading }"></i>
+            <span>بروزرسانی</span>
+          </button>
+        </div>
+      </div>
 
+      <div class="card-body p-2 p-md-3">
+        <!-- Loading -->
+        <div v-if="logsLoading" class="text-center py-4">
+          <div class="spinner-border text-primary"></div>
+        </div>
+
+        <!-- Empty -->
+        <div v-else-if="!logs.data || logs.data.length === 0" class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+          <p class="mb-0">هنوز فایلی آپلود نشده است</p>
+        </div>
+
+        <!-- Table (Desktop) -->
+        <div v-else class="table-responsive d-none d-md-block">
+          <table class="table table-bordered table-striped mb-0 align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>کاربر</th>
+                <th>تعداد کل</th>
+                <th>بروزرسانی‌شده</th>
+                <th>تاریخ</th>
+                <th>فایل</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="log in logs.data" :key="log.id">
+                <td>{{ log.id }}</td>
+                <td>
+                  <span class="user-badge">
+                    <i class="bi bi-person-circle"></i>
+                    {{ log.user?.full_name || '—' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="count-badge">{{ log.total_rows }}</span>
+                </td>
+                <td>
+                  <span class="count-badge success">{{ log.updated_count }}</span>
+                </td>
+                <td>
+                  <span class="date-text">
+                    <i class="bi bi-calendar3"></i>
+                    {{ formatDate(log.created_at) }}
+                  </span>
+                </td>
+                <td>
+                  <a v-if="log.file_path" :href="fileUrl(log.file_path)" target="_blank"
+                    class="btn btn-sm btn-outline-success file-btn">
+                    <i class="bi bi-file-earmark-excel"></i>
+                    <span>دانلود</span>
+                  </a>
+                  <span v-else class="text-muted">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cards (Mobile) -->
+        <div v-if="logs.data && logs.data.length > 0" class="d-md-none log-cards">
+          <div v-for="log in logs.data" :key="log.id" class="log-card">
+            <div class="log-card-header">
+              <div class="log-user">
+                <i class="bi bi-person-circle"></i>
+                <span>{{ log.user?.full_name || '—' }}</span>
+              </div>
+              <span class="log-id">#{{ log.id }}</span>
+            </div>
+
+            <div class="log-card-body">
+              <div class="log-row">
+                <i class="bi bi-list-ol"></i>
+                <span class="log-label">تعداد کل:</span>
+                <span class="log-value">{{ log.total_rows }}</span>
+              </div>
+              <div class="log-row">
+                <i class="bi bi-check2-circle"></i>
+                <span class="log-label">بروزرسانی:</span>
+                <span class="log-value success">{{ log.updated_count }}</span>
+              </div>
+              <div class="log-row">
+                <i class="bi bi-calendar3"></i>
+                <span class="log-label">تاریخ:</span>
+                <span class="log-value">{{ formatDate(log.created_at) }}</span>
+              </div>
+            </div>
+
+            <div class="log-card-actions">
+              <a v-if="log.file_path" :href="fileUrl(log.file_path)" target="_blank"
+                class="btn btn-sm btn-outline-success w-100">
+                <i class="bi bi-download"></i>
+                <span>دانلود فایل</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <b-pagination v-if="logs.last_page > 1" v-model="logsCurrentPage" :total-rows="logs.total"
+          :per-page="logs.per_page" @update:model-value="changeLogsPage" align="center" class="mt-3"></b-pagination>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -425,9 +506,10 @@ async function importExcel() {
     });
 
     clearFile();
+    loadLogs(1);
   } catch (err) {
     console.log(err);
-    
+
     if (err.response?.status === 422 && err.response.data.errors) {
       importErrors.value = err.response.data.errors;
       Swal.fire({
@@ -455,10 +537,59 @@ const previewCount = ref(null);
 watch(selectedCategories, () => {
   previewCount.value = null;
 });
+// ===== Logs =====
+const logs = ref({
+  data: [],
+  total: 0,
+  per_page: 15,
+  current_page: 1,
+  last_page: 1,
+});
+const logsLoading = ref(false);
+const logsCurrentPage = ref(1);
 
+async function loadLogs(page = 1) {
+  logsLoading.value = true;
+  try {
+    const { data } = await axios.get("/sync-product/logs", {
+      params: { page, per_page: 15 },
+    });
+    logs.value = data;
+    logsCurrentPage.value = data.current_page;
+  } catch (err) {
+    console.error(err);
+    Swal.fire("خطا", "مشکلی در دریافت تاریخچه پیش آمد", "error");
+  } finally {
+    logsLoading.value = false;
+  }
+}
+
+function changeLogsPage(page) {
+  if (page) loadLogs(page);
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "—";
+  try {
+    return new Date(dateStr).toLocaleString("fa-IR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+function fileUrl(path) {
+  return `${window.baseImageAddress}/${path}`;
+}
 // ===== Init =====
 onMounted(() => {
   loadCategories();
+  loadLogs(1);
 });
 </script>
 
@@ -501,7 +632,7 @@ onMounted(() => {
   line-height: 1.6;
 }
 
-.info-box > i {
+.info-box>i {
   font-size: 1.15rem;
   color: #3b82f6;
   margin-top: 2px;
@@ -618,7 +749,7 @@ onMounted(() => {
   font-size: 0.86rem;
 }
 
-.preview-box > i {
+.preview-box>i {
   color: #16a34a;
 }
 
@@ -732,7 +863,7 @@ onMounted(() => {
   font-size: 0.85rem;
 }
 
-.errors-header > i {
+.errors-header>i {
   color: #dc2626;
 }
 
@@ -798,7 +929,7 @@ onMounted(() => {
   margin-bottom: 14px;
 }
 
-.help-title > i {
+.help-title>i {
   color: #6c5ce7;
 }
 
@@ -820,7 +951,7 @@ onMounted(() => {
   line-height: 1.6;
 }
 
-.help-list li > i {
+.help-list li>i {
   color: #6c5ce7;
   font-size: 0.9rem;
   margin-top: 3px;
@@ -877,5 +1008,205 @@ onMounted(() => {
   .error-row {
     font-size: 0.72rem;
   }
+}
+
+/* ============ Logs Card ============ */
+.logs-card {
+  border: 1px solid #e9ecef;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.logs-header {
+  padding: 14px 18px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.logs-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2d3436;
+}
+
+.logs-title>i {
+  color: #6c5ce7;
+}
+
+.logs-count {
+  background: #ede9fe;
+  color: #6c5ce7;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.refresh-btn .spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Table cells */
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.user-badge>i {
+  color: #6c5ce7;
+  font-size: 1rem;
+}
+
+.count-badge {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.count-badge.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.date-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: #495057;
+}
+
+.date-text>i {
+  color: #94a3b8;
+}
+
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+/* Mobile log cards */
+.log-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.log-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.log-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 10px;
+}
+
+.log-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #2d3436;
+  font-size: 0.9rem;
+}
+
+.log-user>i {
+  color: #6c5ce7;
+}
+
+.log-id {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.log-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.log-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.log-row>i {
+  color: #6c5ce7;
+  font-size: 0.9rem;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.log-label {
+  color: #6c757d;
+  flex-shrink: 0;
+}
+
+.log-value {
+  color: #2d3436;
+  font-weight: 700;
+  margin-right: auto;
+}
+
+.log-value.success {
+  color: #16a34a;
+}
+
+.log-card-actions {
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.log-card-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  padding: 8px 12px;
+  font-weight: 600;
 }
 </style>
