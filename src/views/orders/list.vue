@@ -375,6 +375,9 @@ function findGateWayName(gateway_transactions) {
   let finded = gateway_transactions.find(i => i.status == "paid")
   if (finded)
     return names[finded.gateway]
+  else if (gateway_transactions.length) {
+    return names[gateway_transactions[0].gateway]
+  }
   return "-"
 }
 
