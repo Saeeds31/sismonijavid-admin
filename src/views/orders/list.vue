@@ -132,7 +132,7 @@
               <option value="online">پرداخت آنلاین</option>
               <option value="wallet">کیف پول</option>
               <option value="card_transfer">کارت به کارت</option>
-              
+
               <option value="cod">پرداخت در محل</option>
             </select>
           </div>
@@ -368,6 +368,9 @@ function findGateWayName(gateway_transactions) {
   let names = {
     parsian: 'پارسیان',
     zarinpal: 'زرین پال',
+    zibal: 'زیبال',
+    torobpay: 'ترب پی',
+    zarinpal: 'اسنپ پی',
   }
   let finded = gateway_transactions.find(i => i.status == "paid")
   if (finded)
