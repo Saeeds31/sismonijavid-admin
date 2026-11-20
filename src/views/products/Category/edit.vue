@@ -55,7 +55,7 @@
           </b-form-group>
         </b-col>
         <!-- Description (Editor) -->
-        <b-col cols="12">
+        <b-col v-if="loadInit" cols="12">
           <b-form-group label="توضیح" label-for="description">
             <Editor v-model="form.description" />
             <small v-if="errors.description" class="text-danger">{{ errors.description[0] }}</small>
@@ -153,10 +153,12 @@ const normalizer = (node) => {
     children: node.children
   }
 }
+let loadInit = ref(false);
 onMounted(async () => {
   try {
     const res = await axios.get(`/categories/${route.params.id}`)
-    Object.assign(form, res.data.data)
+    Object.assign(form, res.data.data);
+    loadInit.value = true;
     form.show_in_home = Number(res.data.data.show_in_home)
     form.show_products_in_home = Number(res.data.data.show_products_in_home)
     if (res.data.data.main_image)
