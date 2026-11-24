@@ -9,7 +9,7 @@
                         <img src="@/assets/images/logo.png" width="72" alt="">
                     </div>
                     <div>
-                        <strong>ماه ستی</strong>
+                        <strong>سیسمونی جاوید</strong>
                         <span>مرکز مدیریت سفارشات</span>
                     </div>
                 </div>
@@ -75,7 +75,7 @@
                             <div class="box box-store">
                                 <div class="store-header">
                                     <div class="store-title">
-                                        <strong>فروشگاه ماه ستی</strong>
+                                        <strong>فروشگاه سیسمونی جاوید</strong>
                                     </div>
                                     <div class="store-date">
                                         <span>تاریخ چاپ:</span>
@@ -86,7 +86,7 @@
                                 <div class="store-row">
                                     <div class="store-cell">
                                         <span class="cell-label">عنوان وبسایت:</span>
-                                        <strong class="cell-value">mahseti.shop</strong>
+                                        <strong class="cell-value">sismonijavid.ir</strong>
                                     </div>
                                     <div class="store-cell">
                                         <span class="cell-label">شناسه سفارش:</span>
@@ -97,7 +97,7 @@
                                 <div class="store-row">
                                     <div class="store-cell">
                                         <span class="cell-label">تلفن:</span>
-                                        <strong class="cell-value">09375015769</strong>
+                                        <strong class="cell-value">09022072235</strong>
                                     </div>
                                     <div class="store-cell">
                                         <span class="cell-label">شیوه ارسال:</span>
@@ -108,12 +108,12 @@
                                 <div class="store-row">
                                     <div class="store-cell">
                                         <span class="cell-label">کدپستی:</span>
-                                        <strong class="cell-value">4917765197</strong>
+                                        <strong class="cell-value">-------</strong>
                                     </div>
                                     <div class="store-cell full-width">
                                         <span class="cell-label">آدرس:</span>
                                         <strong class="cell-value">
-                                            گلستان - گرگان - خیابان پنج آذر - آذر چهارم - جنب داروخانه
+                                            گلستان - گرگان - خیابان سرخواجه - مجتمع آفتاب 3 - طبقه همکف
                                         </strong>
                                     </div>
                                 </div>

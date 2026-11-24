@@ -284,7 +284,7 @@ const filters = ref({
   status: "",
   payment_status: "",
   payment_method: "",
-  shipping_id:"",
+  shipping_id: "",
 });
 const currentPage = ref(1);
 let abortController = null;
@@ -416,6 +416,9 @@ function findGateWayName(gateway_transactions) {
   let names = {
     parsian: 'پارسیان',
     zarinpal: 'زرین پال',
+    zibal: 'زیبال',
+    torobpay: 'ترب پی',
+    zarinpal: 'اسنپ پی',
   }
   if (gateway_transactions.length == 1)
     return names[gateway_transactions[0].gateway]
