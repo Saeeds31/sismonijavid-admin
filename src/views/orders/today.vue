@@ -94,6 +94,7 @@
                     <th>مبلغ کل</th>
                     <th>وضعیت سفارش</th>
                     <th>وضعیت پرداخت</th>
+                    <th>کد رهگیری</th>
                     <th>روش پرداخت</th>
                     <th>زمان پرداخت</th>
                     <th>درگاه پرداخت</th>
@@ -121,6 +122,12 @@
                       </span>
                     </td>
                     <td>{{ paymentMethodText(order.payment_method) }}</td>
+                    <td>
+                      <span v-if="order.shipping_tracking_code" class="tracking-code">
+                        {{ order.shipping_tracking_code }}
+                      </span>
+                      <span v-else class="text-muted">-</span>
+                    </td>
                     <td>{{ new Date(order.updated_at).toLocaleDateString('fa') }}</td>
                     <td>{{
                       order.gateway_transactions && order.gateway_transactions.length ?
@@ -134,6 +141,9 @@
                         </router-link>
                         <button @click="singlePrint(order.id)" class="btn btn-sm btn-secondary" title="پرینت">
                           <i class="bi bi-printer"></i>
+                        </button>
+                        <button @click="openTrackingModal(order)" class="btn btn-sm btn-warning" title="ثبت کد رهگیری">
+                          <i class="bi bi-upc-scan"></i>
                         </button>
                       </div>
                     </td>
@@ -195,6 +205,11 @@
                     <span class="info-label">روش:</span>
                     <span class="info-value">{{ paymentMethodText(order.payment_method) }}</span>
                   </div>
+                  <div class="info-row" v-if="order.shipping_tracking_code">
+                    <i class="bi bi-upc-scan"></i>
+                    <span class="info-label">کد رهگیری:</span>
+                    <span class="info-value">{{ order.shipping_tracking_code }}</span>
+                  </div>
                 </div>
 
                 <div class="order-card-actions">
@@ -206,10 +221,49 @@
                     <i class="bi bi-printer"></i>
                     <span>پرینت</span>
                   </button>
+                  <button @click="openTrackingModal(order)" class="btn btn-sm btn-warning flex-fill">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>کد رهگیری</span>
+                  </button>
                 </div>
               </div>
             </div>
           </template>
+        </div>
+      </div>
+    </div>
+    <!-- مودال ثبت کد رهگیری -->
+    <div v-if="showTrackingModal" class="modal fade show d-block" style="background: rgba(0,0,0,0.5);"
+      @click.self="closeTrackingModal">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-upc-scan me-1"></i>
+              ثبت کد رهگیری
+              <span class="badge bg-primary">#{{ trackingForm.order_id }}</span>
+            </h5>
+            <button type="button" class="btn-close" @click="closeTrackingModal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label">کد رهگیری</label>
+            <input v-model="trackingForm.code" type="text" class="form-control"
+              placeholder="کد رهگیری مرسوله را وارد کنید" @keyup.enter="saveTracking" />
+            <small class="text-muted d-block mt-2">
+              <i class="bi bi-info-circle"></i>
+              پس از ثبت، کد رهگیری برای مشتری پیامک می‌شود.
+            </small>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="closeTrackingModal">انصراف</button>
+            <button class="btn btn-success" @click="saveTracking" :disabled="savingTracking || !trackingForm.code">
+              <span v-if="savingTracking" class="spinner-border spinner-border-sm me-1"></span>
+              <i v-else class="bi bi-check2-circle me-1"></i>
+              ثبت و ارسال پیامک
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -222,7 +276,57 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { useAdmin } from '@/stores/modules/admin';
-import Swal from "sweetalert2";
+import Swal from "sweetalert2"; // اگه قبلاً import نکردی
+
+const showTrackingModal = ref(false);
+const savingTracking = ref(false);
+const trackingForm = ref({ order_id: null, code: "" });
+
+const openTrackingModal = (order) => {
+  trackingForm.value = {
+    order_id: order.id,
+    code: order.shipping_tracking_code || "",
+  };
+  showTrackingModal.value = true;
+};
+
+const closeTrackingModal = () => {
+  showTrackingModal.value = false;
+  trackingForm.value = { order_id: null, code: "" };
+};
+
+const saveTracking = async () => {
+  if (!trackingForm.value.code) return;
+  savingTracking.value = true;
+  try {
+    const { data } = await axios.post(
+      `/orders/${trackingForm.value.order_id}/shipping-tracking`,
+      { shipping_tracking_code: trackingForm.value.code }
+    );
+
+    Swal.fire({
+      icon: "success",
+      title: "ثبت شد",
+      text: data.message ?? "کد رهگیری با موفقیت ثبت شد.",
+      timer: 1800,
+      showConfirmButton: false,
+    });
+
+    // آپدیت ردیف در لیست (بدون رفرش کامل)
+    const found = orders.value.find(o => o.id === trackingForm.value.order_id);
+    if (found) found.shipping_tracking_code = trackingForm.value.code;
+
+    closeTrackingModal();
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "خطا",
+      text: error.response?.data?.message ?? "خطا در ثبت کد رهگیری",
+    });
+  } finally {
+    savingTracking.value = false;
+  }
+};
 
 const bulkCompleting = ref(false);
 

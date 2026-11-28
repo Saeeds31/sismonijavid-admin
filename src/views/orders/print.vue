@@ -65,7 +65,7 @@
 
             <div class="print-body">
 
-                <!-- ================= FULL PRINT (A4 - 2 per page) ================= -->
+                <!-- ================= FULL PRINT ================= -->
                 <template v-if="printType === 'full'">
 
                     <div class="invoice-page">
@@ -155,14 +155,14 @@
                                 </div>
                             </div>
 
-                            <!-- ===== جدول آیتم‌ها (اصلی + فرزند) ===== -->
+                            <!-- ===== جدول آیتم‌ها ===== -->
                             <div class="box box-table">
                                 <table class="items-table">
                                     <thead>
                                         <tr>
-                                            <th class="col-specs">مشخصات</th>
                                             <th class="col-index">#</th>
                                             <th class="col-product">محصول</th>
+                                            <th class="col-specs">مشخصات</th>
                                             <th class="col-price">قیمت</th>
                                             <th class="col-discount">تخفیف</th>
                                             <th class="col-qty">تعداد</th>
@@ -172,6 +172,9 @@
                                     <tbody>
                                         <!-- آیتم‌های سفارش اصلی -->
                                         <tr v-for="(item, idx) in order.items" :key="item.id">
+
+                                            <td class="cell-index">{{ String(idx + 1).padStart(2, '0') }}</td>
+                                            <td class="cell-product">{{ item.product?.title ?? '-' }}</td>
                                             <td class="cell-specs">
                                                 <template v-if="item.variant?.values?.length">
                                                     <span v-for="val in item.variant.values" :key="val.id"
@@ -182,8 +185,6 @@
                                                 </template>
                                                 <span v-else class="muted">-</span>
                                             </td>
-                                            <td class="cell-index">{{ String(idx + 1).padStart(2, '0') }}</td>
-                                            <td class="cell-product">{{ item.product?.title ?? '-' }}</td>
                                             <td class="cell-price">{{ Number(item.price).toLocaleString('fa-IR') }}</td>
                                             <td class="cell-discount">{{ Number(item.discount ??
                                                 0).toLocaleString('fa-IR') }}</td>
@@ -192,7 +193,7 @@
                                                 item.quantity).toLocaleString('fa-IR') }}</td>
                                         </tr>
 
-                                        <!-- آیتم‌های سفارشات فرزند (ادامه شماره‌گذاری) -->
+                                        <!-- آیتم‌های سفارشات فرزند -->
                                         <template v-for="child in order.child_orders || []" :key="'child-' + child.id">
                                             <tr v-for="(item, cidx) in child.items" :key="item.id">
                                                 <td class="cell-specs">
@@ -240,17 +241,18 @@
                                     <div class="summary-cell">
                                         <span class="cell-label">مبلغ کل:</span>
                                         <strong class="cell-value">{{ Number(getSubTotal(order)).toLocaleString('fa-IR')
-                                            }}
+                                        }}
                                             تومان</strong>
                                     </div>
                                     <div class="summary-cell">
-                                        <span class="cell-label">مبلغ حمل و نقل:</span>
+                                        <span class="cell-label">حمل و نقل:</span>
                                         <strong class="cell-value">{{
                                             Number(getShippingCost(order)).toLocaleString('fa-IR') }} تومان</strong>
                                     </div>
                                     <div class="summary-cell highlight">
                                         <span class="cell-label">مبلغ نهایی:</span>
-                                        <strong class="cell-value">{{ Number(getShippingCost(order)+getSubTotal(order)).toLocaleString('fa-IR') }}
+                                        <strong class="cell-value">{{
+                                            Number(getShippingCost(order) +getSubTotal(order)).toLocaleString('fa-IR') }}
                                             تومان</strong>
                                     </div>
                                 </div>
@@ -265,19 +267,12 @@
                                 </div>
                             </div>
 
-                            <!-- ✅ جداکننده بین دو سفارش در یک صفحه (فقط در نمایش) -->
-                            <div v-if="index < orders.length - 1 && index % 2 === 0" class="order-divider">
-                                <span></span>
-                                <i class="bi bi-scissors"></i>
-                                <span></span>
-                            </div>
-
                         </div>
                     </div>
 
                 </template>
 
-                <!-- ================= LABEL (بدون تغییر) ================= -->
+                <!-- ================= LABEL ================= -->
                 <template v-else-if="printType === 'label'">
 
                     <div class="labels-grid">
@@ -392,14 +387,6 @@
 
             </div>
 
-            <!-- PRINT FOOTER -->
-            <div class="print-footer">
-                <div class="footer-line"></div>
-                <strong>ماه ستی</strong>
-                <span>این فاکتور توسط سیستم مدیریت سفارشات صادر شده است.</span>
-                <small>www.mahseti.shop</small>
-            </div>
-
         </div>
 
     </div>
@@ -420,13 +407,14 @@ const orders = ref([]);
 const loading = ref(false);
 const orderIds = ref([]);
 const printType = ref('full');
+
 function getSubTotal(order) {
     if (!order) return 0;
     let childs = order.child_orders ? order.child_orders.filter(o => o.status == "paid") : [];
     let childTotal = childs.reduce((a, b) => {
         return a + b.subtotal
     }, 0)
-    return childTotal+order.subtotal
+    return childTotal + order.subtotal
 }
 
 function getShippingCost(order) {
@@ -435,9 +423,8 @@ function getShippingCost(order) {
     let childTotal = childs.reduce((a, b) => {
         return a + b.shipping_cost
     }, 0)
-    return childTotal+order.shipping_cost
+    return childTotal + order.shipping_cost
 }
-
 
 // ✅ تاریخ امروز به شمسی
 const getCurrentDate = () => {
@@ -448,7 +435,7 @@ const getCurrentDate = () => {
     });
 };
 
-// ✅ تعداد کل آیتم‌های سفارش (اصلی + فرزند)
+// ✅ تعداد کل آیتم‌های سفارش
 const getTotalQuantity = (order) => {
     let total = 0;
     if (order?.items?.length) {
@@ -462,14 +449,6 @@ const getTotalQuantity = (order) => {
         });
     }
     return total;
-};
-
-// ✅ اطلاعات ثابت فروشگاه
-const STORE_INFO = {
-    title: 'فروشگاه ماه ستی',
-    website: 'mahseti.shop',
-    phone: '09375015769',
-    address: 'گلستان - گرگان - خیابان پنج آذر - آذر چهارم - جنب داروخانه'
 };
 
 const handlePrint = () => {
@@ -512,70 +491,83 @@ const handlePrint = () => {
                     background: #fff;
                     color: #000;
                     font-size: 10px;
-                    line-height: 1.5;
+                    line-height: 1.6;
                 }
 
                 body, body * {
                     font-family: 'yekanbakhbold', Tahoma, Arial, sans-serif !important;
                 }
 
+                /* ✅ سایز برگه: 8cm × 14cm */
                 @page {
-                    size: A4 portrait;
-                    margin: 8mm;
+                    size: 80mm 140mm;
+                    margin: 2mm;
                 }
 
-                /* ✅ دو سفارش در یک برگه A4 */
                 .invoice-page {
                     display: block;
                 }
 
+                /* ✅ هر سفارش = یک صفحه کامل 8×14 با flex عمودی */
                 .invoice-a4 {
-                    page-break-inside: avoid;
-                    break-inside: avoid;
-                }
-
-                .invoice-a4:nth-child(2n) {
+                    width: 76mm;
+                    height: 136mm;
+                    overflow: hidden;
                     page-break-after: always;
                     break-after: page;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
                 }
 
-                .invoice-a4:nth-child(2n):last-child {
+                .invoice-a4:last-child {
                     page-break-after: auto;
                     break-after: auto;
                 }
 
                 /* ===== باکس‌ها ===== */
                 .box {
-                    border: 1px solid #000;
-                    margin-bottom: 3px;
+                    border: 0.7px solid #000;
                     page-break-inside: avoid;
                     break-inside: avoid;
                 }
 
-                .box:last-child {
-                    margin-bottom: 0;
+                /* ✅ جدول فضای باقی‌مانده رو پر می‌کنه */
+                .box-table {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 0;
+                    padding: 0;
                 }
 
-                /* ===== باکس بالای فروشگاه ===== */
+                .box-table .items-table {
+                    flex: 1;
+                    height: 100%;
+                }
+
+                /* ===== باکس فروشگاه ===== */
                 .store-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding: 4px 8px;
-                    border-bottom: 1px solid #000;
+                    padding: 5px 7px;
+                    border-bottom: 0.7px solid #000;
                     background: #f5f5f5;
                 }
 
                 .store-title strong {
-                    font-size: 12px;
+                    font-size: 11px;
                     font-weight: 900;
                 }
 
                 .store-date {
                     display: flex;
                     align-items: center;
-                    gap: 4px;
-                    font-size: 9px;
+                    gap: 3px;
+                    font-size: 8px;
                 }
 
                 .store-date strong {
@@ -584,8 +576,8 @@ const handlePrint = () => {
 
                 .store-row {
                     display: flex;
-                    padding: 3px 8px;
-                    border-bottom: 1px solid #ddd;
+                    padding: 4px 7px;
+                    border-bottom: 0.7px solid #ddd;
                 }
 
                 .store-row:last-child {
@@ -595,20 +587,20 @@ const handlePrint = () => {
                 .store-cell {
                     display: flex;
                     align-items: center;
-                    gap: 4px;
+                    gap: 3px;
                     flex: 1;
-                    padding: 0 4px;
+                    padding: 0 3px;
                 }
 
                 .store-cell:not(:last-child) {
-                    border-left: 1px solid #ddd;
+                    border-left: 0.7px solid #ddd;
                 }
 
                 /* ===== باکس گیرنده ===== */
                 .receiver-header {
-                    padding: 3px 8px;
+                    padding: 4px 7px;
                     background: #f5f5f5;
-                    border-bottom: 1px solid #000;
+                    border-bottom: 0.7px solid #000;
                     font-size: 10px;
                 }
 
@@ -619,19 +611,19 @@ const handlePrint = () => {
                 .receiver-grid {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    border-bottom: 1px solid #ddd;
+                    border-bottom: 0.7px solid #ddd;
                 }
 
                 .receiver-item {
                     display: flex;
                     align-items: center;
-                    gap: 4px;
-                    padding: 3px 8px;
-                    border-bottom: 1px solid #ddd;
+                    gap: 3px;
+                    padding: 4px 7px;
+                    border-bottom: 0.7px solid #ddd;
                 }
 
                 .receiver-item:nth-child(odd) {
-                    border-left: 1px solid #ddd;
+                    border-left: 0.7px solid #ddd;
                 }
 
                 .receiver-item:nth-last-child(-n+2) {
@@ -641,8 +633,8 @@ const handlePrint = () => {
                 .receiver-address {
                     display: flex;
                     align-items: flex-start;
-                    gap: 4px;
-                    padding: 4px 8px;
+                    gap: 3px;
+                    padding: 4px 7px;
                 }
 
                 /* ===== سلول‌ها ===== */
@@ -655,19 +647,15 @@ const handlePrint = () => {
 
                 .cell-value {
                     font-weight: 800;
-                    font-size: 9.5px;
+                    font-size: 10px;
                     word-break: break-word;
                 }
 
                 /* ===== جدول آیتم‌ها ===== */
-                .box-table {
-                    padding: 0;
-                }
-
                 .items-table {
                     width: 100%;
                     border-collapse: collapse;
-                    font-size: 9px;
+                    font-size: 9.5px;
                 }
 
                 .items-table thead {
@@ -675,20 +663,22 @@ const handlePrint = () => {
                 }
 
                 .items-table th {
-                    border: 1px solid #000;
-                    padding: 4px 3px;
+                    border: 0.7px solid #000;
+                    padding: 5px 2px;
                     font-weight: 900;
                     font-size: 9px;
                     text-align: center;
                     white-space: nowrap;
                 }
 
+                /* ✅ ارتفاع ردیف‌ها بیشتر بشه تا جدول پر بشه */
                 .items-table td {
-                    border: 1px solid #999;
-                    padding: 4px 3px;
+                    border: 0.7px solid #999;
+                    padding: 7px 2px;
                     text-align: center;
                     vertical-align: middle;
-                    font-size: 9px;
+                    font-size: 9.5px;
+                    height: 24px;
                 }
 
                 .cell-specs {
@@ -734,9 +724,9 @@ const handlePrint = () => {
                 .items-total-row td {
                     background: #f5f5f5;
                     text-align: right;
-                    padding: 5px 8px;
+                    padding: 5px 7px;
                     font-size: 10px;
-                    border-top: 2px solid #000;
+                    border-top: 1.5px solid #000;
                 }
 
                 .items-total-row strong {
@@ -753,9 +743,9 @@ const handlePrint = () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 5px;
-                    padding: 7px 6px;
-                    border-left: 1px solid #000;
+                    gap: 3px;
+                    padding: 7px 4px;
+                    border-left: 0.7px solid #000;
                     text-align: center;
                 }
 
@@ -778,33 +768,8 @@ const handlePrint = () => {
 
                 .summary-cell.highlight .cell-value {
                     color: #fff !important;
-                    font-size: 12px;
-                    font-weight: 900;
-                }
-
-                /* ✅ جداکننده بین دو سفارش */
-                .order-divider {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin: 6px 0;
-                    color: #999;
-                }
-
-                .order-divider span {
-                    flex: 1;
-                    height: 1px;
-                    background: #ccc;
-                }
-
-                .order-divider i {
                     font-size: 11px;
-                }
-
-                /* ===== هدر/فوتر چاپ ===== */
-                .print-header,
-                .print-footer {
-                    display: none;
+                    font-weight: 900;
                 }
 
                 /* ===== پرینت ===== */
@@ -815,10 +780,6 @@ const handlePrint = () => {
 
                     .box {
                         box-shadow: none;
-                    }
-
-                    .order-divider {
-                        display: flex !important;
                     }
                 }
             </style>
@@ -1093,11 +1054,6 @@ onMounted(() => {
     padding: 40px 30px 70px;
 }
 
-.print-header,
-.print-footer {
-    display: none;
-}
-
 /* =========================================================
    LOADING
 ========================================================= */
@@ -1197,34 +1153,45 @@ onMounted(() => {
 }
 
 /* =========================================================
-   INVOICE A4 (نمایش روی صفحه - 2 per page)
+   INVOICE (نمایش روی صفحه - با سایز 8×14)
 ========================================================= */
 .invoice-page {
     display: flex;
     flex-direction: column;
     gap: 30px;
+    align-items: center;
 }
 
 .invoice-a4 {
     background: #fff;
     border: 1px solid #e4e4e7;
     border-radius: 6px;
-    padding: 10px;
+    padding: 8px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, .05);
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
+    width: 80mm;
+    height: 140mm;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 /* ===== باکس‌ها ===== */
 .invoice-a4 .box {
     border: 1px solid #000;
-    margin-bottom: 4px;
 }
 
-.invoice-a4 .box:last-child {
-    margin-bottom: 0;
+.invoice-a4 .box-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0;
+}
+
+.invoice-a4 .box-table .items-table {
+    flex: 1;
+    height: 100%;
 }
 
 /* باکس فروشگاه */
@@ -1232,21 +1199,21 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 10px;
+    padding: 4px 6px;
     border-bottom: 1px solid #000;
     background: #f5f5f5;
 }
 
 .invoice-a4 .store-title strong {
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 900;
 }
 
 .invoice-a4 .store-date {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 11px;
+    gap: 3px;
+    font-size: 8px;
 }
 
 .invoice-a4 .store-date strong {
@@ -1255,7 +1222,7 @@ onMounted(() => {
 
 .invoice-a4 .store-row {
     display: flex;
-    padding: 5px 10px;
+    padding: 3px 6px;
     border-bottom: 1px solid #ddd;
 }
 
@@ -1266,9 +1233,9 @@ onMounted(() => {
 .invoice-a4 .store-cell {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 3px;
     flex: 1;
-    padding: 0 5px;
+    padding: 0 3px;
 }
 
 .invoice-a4 .store-cell:not(:last-child) {
@@ -1277,10 +1244,10 @@ onMounted(() => {
 
 /* باکس گیرنده */
 .invoice-a4 .receiver-header {
-    padding: 5px 10px;
+    padding: 3px 6px;
     background: #f5f5f5;
     border-bottom: 1px solid #000;
-    font-size: 12px;
+    font-size: 9px;
 }
 
 .invoice-a4 .receiver-header strong {
@@ -1296,8 +1263,8 @@ onMounted(() => {
 .invoice-a4 .receiver-item {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
+    gap: 3px;
+    padding: 3px 6px;
     border-bottom: 1px solid #ddd;
 }
 
@@ -1312,33 +1279,29 @@ onMounted(() => {
 .invoice-a4 .receiver-address {
     display: flex;
     align-items: flex-start;
-    gap: 5px;
-    padding: 6px 10px;
+    gap: 3px;
+    padding: 4px 6px;
 }
 
 /* سلول‌ها */
 .invoice-a4 .cell-label {
     color: #555;
-    font-size: 10px;
+    font-size: 8px;
     font-weight: 600;
     white-space: nowrap;
 }
 
 .invoice-a4 .cell-value {
     font-weight: 800;
-    font-size: 11px;
+    font-size: 9px;
     word-break: break-word;
 }
 
 /* جدول */
-.invoice-a4 .box-table {
-    padding: 0;
-}
-
 .invoice-a4 .items-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 10px;
+    font-size: 8.5px;
 }
 
 .invoice-a4 .items-table thead {
@@ -1347,25 +1310,26 @@ onMounted(() => {
 
 .invoice-a4 .items-table th {
     border: 1px solid #000;
-    padding: 6px 4px;
+    padding: 4px 2px;
     font-weight: 900;
-    font-size: 10px;
+    font-size: 8px;
     text-align: center;
     white-space: nowrap;
 }
 
 .invoice-a4 .items-table td {
     border: 1px solid #999;
-    padding: 6px 4px;
+    padding: 6px 2px;
     text-align: center;
     vertical-align: middle;
-    font-size: 10px;
+    font-size: 8.5px;
+    height: 22px;
 }
 
 .invoice-a4 .cell-specs {
     text-align: right;
-    line-height: 1.6;
-    font-size: 9px;
+    line-height: 1.5;
+    font-size: 7.5px;
 }
 
 .invoice-a4 .spec-line {
@@ -1405,8 +1369,8 @@ onMounted(() => {
 .invoice-a4 .items-total-row td {
     background: #f5f5f5;
     text-align: right;
-    padding: 6px 10px;
-    font-size: 11px;
+    padding: 4px 6px;
+    font-size: 9px;
     border-top: 2px solid #000;
 }
 
@@ -1424,8 +1388,8 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 10px 8px;
+    gap: 3px;
+    padding: 6px 3px;
     border-left: 1px solid #000;
     text-align: center;
 }
@@ -1434,7 +1398,6 @@ onMounted(() => {
     border-left: none;
 }
 
-/* ✅ مبلغ نهایی - مشکی پررنگ */
 .invoice-a4 .summary-cell.highlight {
     background: #000 !important;
     color: #fff !important;
@@ -1450,82 +1413,69 @@ onMounted(() => {
 
 .invoice-a4 .summary-cell.highlight .cell-value {
     color: #fff !important;
-    font-size: 13px;
+    font-size: 10px;
     font-weight: 900;
 }
 
-/* ===== جداکننده بین دو سفارش ===== */
-.order-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 8px 0;
-    color: #999;
-}
-
-.order-divider span {
-    flex: 1;
-    height: 1px;
-    background: #ccc;
-}
-
-.order-divider i {
-    font-size: 12px;
-}
-
 /* =========================================================
-   LABELS (برچسب ارسال - بدون تغییر)
+   LABELS (برچسب ارسال - سایز 8×14)
 ========================================================= */
 .labels-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 80mm);
     gap: 18px;
+    justify-content: center;
 }
 
 .label-card {
     overflow: hidden;
     background: #fff;
     border: 1px solid #18181b;
-    border-radius: 15px;
+    border-radius: 10px;
     box-shadow: 0 10px 35px rgba(0, 0, 0, .04);
+    width: 80mm;
+    height: 140mm;
+    display: flex;
+    flex-direction: column;
 }
 
 .label-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 17px;
+    padding: 6px 8px;
     background: #18181b;
     color: #fff;
+    flex-shrink: 0;
 }
 
 .label-brand {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 6px;
 }
 
 .mini-logo {
-    width: 34px;
-    height: 34px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(255, 255, 255, .25);
-    border-radius: 9px;
-    font-size: 14px;
+    border-radius: 7px;
+    font-size: 11px;
 }
 
 .label-brand strong {
     display: block;
-    font-size: 12px;
+    font-size: 9px;
     font-weight: 900;
 }
 
 .label-brand span {
     display: block;
     color: #a1a1aa;
-    font-size: 7px;
+    font-size: 6px;
     letter-spacing: 1px;
     direction: ltr;
 }
@@ -1537,26 +1487,27 @@ onMounted(() => {
 .label-number small {
     display: block;
     color: #a1a1aa;
-    font-size: 7px;
+    font-size: 6px;
     direction: ltr;
 }
 
 .label-number strong {
-    font-size: 15px;
+    font-size: 11px;
 }
 
 .label-route {
-    padding: 20px;
+    padding: 8px;
+    flex: 1;
 }
 
 .route-title {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
     color: #71717a;
-    font-size: 9px;
+    font-size: 7px;
     font-weight: 700;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .route-title i {
@@ -1564,43 +1515,43 @@ onMounted(() => {
 }
 
 .route-line {
-    width: 30px;
+    width: 20px;
     height: 1px;
     background: #d4d4d8;
 }
 
 .receiver-name {
-    font-size: 18px;
+    font-size: 12px;
     font-weight: 900;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .receiver-phone {
     color: #52525b;
-    font-size: 10px;
-    margin-bottom: 13px;
+    font-size: 7px;
+    margin-bottom: 6px;
 }
 
 .receiver-phone i {
-    margin-left: 5px;
+    margin-left: 3px;
 }
 
 .receiver-address {
-    padding: 10px;
+    padding: 6px;
     background: #fafafa;
     border: 1px solid #f0f0f0;
-    border-radius: 8px;
-    font-size: 10px;
-    line-height: 1.9;
+    border-radius: 6px;
+    font-size: 7px;
+    line-height: 1.7;
 }
 
 .receiver-location {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
-    margin-top: 9px;
+    gap: 8px;
+    margin-top: 5px;
     color: #52525b;
-    font-size: 9px;
+    font-size: 7px;
 }
 
 .receiver-location strong {
@@ -1612,20 +1563,21 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 17px;
+    padding: 6px 8px;
     background: #fafafa;
     border-top: 1px dashed #d4d4d8;
+    flex-shrink: 0;
 }
 
 .label-bottom small {
     display: block;
     color: #a1a1aa;
-    font-size: 8px;
+    font-size: 6px;
 }
 
 .label-bottom strong {
     display: block;
-    font-size: 10px;
+    font-size: 8px;
     font-weight: 900;
 }
 
@@ -1634,12 +1586,12 @@ onMounted(() => {
 }
 
 .label-price strong {
-    font-size: 13px;
+    font-size: 10px;
 }
 
 .label-price em {
     color: #71717a;
-    font-size: 8px;
+    font-size: 6px;
     font-style: normal;
 }
 
@@ -1660,7 +1612,7 @@ onMounted(() => {
     }
 
     .labels-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 80mm;
     }
 }
 
@@ -1698,18 +1650,55 @@ onMounted(() => {
     }
 
     #printSection {
-        max-width: 100%;
+        max-width: none;
         padding: 0;
+        margin: 0;
     }
 
-    .print-header,
-    .print-footer {
-        display: block !important;
+    .invoice-page {
+        display: block;
+        gap: 0;
     }
 
-    .order-card,
+    .invoice-a4 {
+        background: none;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+        max-width: none;
+        margin: 0;
+        width: 76mm;
+        height: 136mm;
+        overflow: hidden;
+        page-break-after: always;
+        break-after: page;
+    }
+
+    .invoice-a4:last-child {
+        page-break-after: auto;
+        break-after: auto;
+    }
+
+    .labels-grid {
+        display: block;
+        gap: 0;
+    }
+
     .label-card {
-        box-shadow: none !important;
+        width: 76mm;
+        height: 136mm;
+        margin: 0 auto;
+        page-break-after: always;
+        break-after: page;
+        border: 0.5px solid #000;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .label-card:last-child {
+        page-break-after: auto;
+        break-after: auto;
     }
 }
 </style>

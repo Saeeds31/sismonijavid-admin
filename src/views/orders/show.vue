@@ -51,7 +51,7 @@
             <span class="info-value">
               <span class="value-text">{{ getAddressText(order?.address) }} <span><b> -کدپستی: </b>{{
                 order?.address?.postal_code
-              }}</span>
+                  }}</span>
                 <span><b> -شماره تماس: </b>{{
                   order?.address?.phone
                 }}</span>
@@ -138,6 +138,23 @@
             </span>
             <span class="info-value">
               <span :class="getStatusClass(order?.status)">{{ getStatusText(order?.status) }}</span>
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">
+              <i class="bi bi-upc-scan"></i>
+              کد رهگیری
+            </span>
+            <span class="info-value">
+              <span v-if="order.shipping_tracking_code" class="value-text">
+                {{ order.shipping_tracking_code }}
+              </span>
+              <span v-else class="text-muted">ثبت نشده</span>
+
+              <b-button v-if="order?.status === 'completed'" variant="outline-warning" size="sm" class="edit-btn"
+                @click="showTrackingModalFunc()" title="ثبت / ویرایش کد رهگیری">
+                <i class="bi bi-pencil"></i>
+              </b-button>
             </span>
           </div>
           <!-- توضیحات -->
@@ -606,6 +623,33 @@
         </button>
       </div>
     </Modal>
+    <Modal v-if="showTrackingModal" id="trackingModal" @closeModal="() => { showTrackingModal = false; }"
+      title="ثبت کد رهگیری">
+      <div>
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-upc-scan me-1"></i>
+            کد رهگیری
+          </label>
+          <input v-model="trackingCode" type="text" class="form-control" placeholder="کد رهگیری مرسوله" />
+        </div>
+        <div class="alert alert-info mb-0 py-2">
+          <i class="bi bi-info-circle me-1"></i>
+          پس از ثبت، کد رهگیری برای مشتری پیامک می‌شود.
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary action-btn" @click="showTrackingModal = false">
+          <i class="bi bi-x"></i>
+          <span>لغو</span>
+        </button>
+        <button class="btn btn-success action-btn" @click="saveTracking" :disabled="savingTracking">
+          <span v-if="savingTracking" class="fas fa-spinner fa-spin me-1"></span>
+          <i v-else class="bi bi-check2-circle"></i>
+          <span>ثبت و ارسال پیامک</span>
+        </button>
+      </div>
+    </Modal>
   </b-container>
 </template>
 
@@ -667,7 +711,35 @@ const canEdit = computed(() => {
   if (!order.value) return false
   return !['completed', 'failed', 'shipped'].includes(order.value.status)
 })
+const showTrackingModal = ref(false);
+const savingTracking = ref(false);
+const trackingCode = ref("");
 
+const showTrackingModalFunc = () => {
+  trackingCode.value = order.value.shipping_tracking_code || "";
+  showTrackingModal.value = true;
+};
+
+const saveTracking = async () => {
+  if (!trackingCode.value) {
+    toast.error("کد رهگیری را وارد کنید");
+    return;
+  }
+  savingTracking.value = true;
+  try {
+    const { data } = await axios.post(
+      `/orders/${order.value.id}/shipping-tracking`,
+      { shipping_tracking_code: trackingCode.value }
+    );
+    toast.success(data.message ?? "کد رهگیری ثبت شد");
+    showTrackingModal.value = false;
+    await fetchOrder();
+  } catch (error) {
+    toast.error(error.response?.data?.message ?? "خطا در ثبت کد رهگیری");
+  } finally {
+    savingTracking.value = false;
+  }
+};
 const orderStatusOptions = [
   { value: "pending", text: "در انتظار" },
   { value: "reserved", text: "رزرو شده" },
